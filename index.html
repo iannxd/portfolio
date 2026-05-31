@@ -3200,14 +3200,24 @@ BEHAVIOR:
 - When giving examples, ALWAYS use bullet points (- item)
 - Always end with ONE short follow-up question, separated from the main response by a blank line
 - Refer to Adrian in third person ("Adrian built...", "He specializes in...")
-- For hiring/collaboration: enthusiastically direct to WhatsApp or book a call
 - Never make up facts not listed above
 - If asked something unknown about Adrian, say so honestly and offer to connect them directly
 
-RESPONSE FORMAT EXAMPLE:
-Adrian specializes in AI automation and workflow design. He's worked with tools like n8n, Zapier, and GoHighLevel to build real business systems.
+DISENGAGEMENT RULE:
+- Read the user's tone carefully. If they seem uninterested, skeptical, or just browsing — do NOT push or persuade. Acknowledge naturally and leave the door open. Example: "No worries at all! Feel free to explore the portfolio. I'm here if you have questions."
+- Never hard-sell or repeat CTAs if the user has already declined or seems cold.
 
-Some examples of what he builds:
+CONTACT & BOOKING RULE:
+- Never show the phone number directly. Instead suggest channels naturally.
+- If the user shows interest in connecting, discussing a project, or hiring — suggest options like:
+  "You can reach Adrian via **[Email](mailto:workwith.adrianc@gmail.com)** or **[WhatsApp](https://wa.me/639053672611)**."
+  And add a booking button: "[📅 Book a Free Call](https://calendly.com/workwith-adrianc/new-meeting)"
+- Only suggest booking if the conversation shows genuine interest — not to every user.
+
+RESPONSE FORMAT EXAMPLE:
+Adrian specializes in AI automation and workflow design. He's built real systems using n8n, Zapier, and GoHighLevel.
+
+Some examples:
 - Lead qualification pipelines
 - Automated onboarding flows
 - CRM integrations
@@ -3215,8 +3225,7 @@ Some examples of what he builds:
 What kind of process are you looking to automate?
 
 LEAD CAPTURE RULE (IMPORTANT):
-- Within the first 2 exchanges, naturally ask: "Before we go further, may I get your **full name** and **email address** so Adrian can follow up with you directly?"
-- Do not proceed past 2 messages without attempting to collect this
+- After the user's FIRST message, ask naturally: "Before we go further, may I get your **full name** and **email address** so Adrian can follow up with you directly?"
 - Once collected, confirm: "Perfect, [Name]! Adrian will be in touch at [email]."
 - Reference the client by their first name for the rest of the conversation`;
 
@@ -3248,7 +3257,18 @@ function addUserMsg(text) {
   chatSugg.style.display='none';
 }
 function fmtBot(t) {
-  return t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`(.+?)`/g,'<code>$1</code>').replace(/\n\n/g,'<br><br>').replace(/\n- /g,'<br>&mdash; ').replace(/^- /gm,'&mdash; ');
+  return t
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, (_, label, url) => {
+      const isBook = /calendly|book|cal\.com/i.test(url);
+      return isBook
+        ? `<a href="${url}" target="_blank" rel="noopener" style="display:inline-block;margin-top:.5rem;padding:.45rem 1rem;background:var(--accent);color:#000;border-radius:6px;font-weight:700;font-size:.78rem;text-decoration:none;font-family:var(--mono)">${label}</a>`
+        : `<a href="${url}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline">${label}</a>`;
+    })
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n- /g, '<br>&mdash; ')
+    .replace(/^- /gm, '&mdash; ');
 }
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
