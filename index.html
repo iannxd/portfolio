@@ -160,6 +160,7 @@ nav.scrolled {
     linear-gradient(90deg,rgba(196,144,0,.08) 1px,transparent 1px);
 }
 .hero-orb { position:absolute;border-radius:50%;filter:blur(90px); }
+@media(max-width:768px){.hero-orb{filter:none;opacity:.4}}
 .hero-orb-1 {
   width:560px;height:560px;
   background:radial-gradient(circle,rgba(240,192,21,.09) 0%,transparent 70%);
@@ -184,7 +185,7 @@ nav.scrolled {
 
 /* Scroll-driven parallax — named view timeline on hero section */
 #hero { view-timeline-name:--hero-vt; view-timeline-axis:block; }
-@supports (animation-timeline: --hero-vt) {
+@media(min-width:769px) { @supports (animation-timeline: --hero-vt) {
   .hero-bg {
     animation: hero-bg-parallax linear both;
     animation-timeline: --hero-vt;
@@ -210,7 +211,7 @@ nav.scrolled {
     animation-timeline: --hero-vt;
     animation-range: contain 0% exit 80%;
   }
-}
+} }
 /* bg drifts down (lags behind) while hero scrolls up — classic parallax */
 @keyframes hero-bg-parallax {
   from { transform: translateY(0) scale(1); }
@@ -252,7 +253,9 @@ nav.scrolled {
 @keyframes pdot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.75)} }
 .hero-name { font-size:clamp(.85rem,1.5vw,1rem);font-weight:400;color:var(--text2);letter-spacing:.12em;text-transform:uppercase;font-family:var(--mono);margin-bottom:1rem; }
 .hero-title { font-size:clamp(2.6rem,5vw,4.8rem);font-weight:900;line-height:1.04;letter-spacing:-.03em;margin-bottom:1.5rem;color:var(--text); }
-.hero-title .accent { display:block;color:var(--accent);white-space:nowrap;overflow:hidden; }
+.hero-title .accent { display:inline-block;color:var(--accent);white-space:nowrap;overflow:visible; }
+@keyframes clip-wipe-in  { from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0% 0 0)} }
+@keyframes clip-wipe-out { from{clip-path:inset(0 0% 0 0)}  to{clip-path:inset(0 0 0 100%)} }
 .hero-tagline { font-size:clamp(.92rem,1.4vw,1rem);color:var(--text2);line-height:1.78;max-width:50ch;margin-bottom:2.5rem; }
 .hero-actions { display:flex;align-items:center;gap:1rem;flex-wrap:wrap; }
 .btn-primary {
@@ -1009,6 +1012,7 @@ body.admin-mode .admin-fab { background:var(--accent);color:#0a0900;border-color
   .pd-body{padding:1.25rem 1.25rem}
   #scramble-section{padding:1.75rem 1.25rem}
   #scramble-text{font-size:clamp(.85rem,4.5vw,1.2rem)!important;letter-spacing:.03em}
+  #flow-canvas{display:none}
 }
 
 /* ============================================================
@@ -2044,27 +2048,6 @@ window.addEventListener('scroll', () => mainNav.classList.toggle('scrolled', win
 /* ============================================================
    TEXT SCRAMBLE
    ============================================================ */
-const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#$@!%&';
-const PHRASES = ['AI Automation','AI Agents','AI Integrations','Workflow Design','Data Pipelines','AI-Powered Tools','CRM Automation','Auto-Scaling Ops'];
-let phraseIdx = 0;
-const scEl = document.getElementById('scramble-el');
-
-function scramble(el, target, ms=900) {
-  const frames = Math.floor(ms/45); let f=0;
-  const iv = setInterval(() => {
-    const done = Math.floor((f/frames)*target.length);
-    let out = '';
-    for(let i=0;i<target.length;i++) out += i<done ? target[i] : CHARS[Math.floor(Math.random()*CHARS.length)];
-    el.textContent = out;
-    if(++f>frames) { el.textContent=target; clearInterval(iv); }
-  }, 45);
-}
-function cyclePhrases() {
-  phraseIdx = (phraseIdx+1)%PHRASES.length;
-  scramble(scEl, PHRASES[phraseIdx]);
-  setTimeout(cyclePhrases, 4200);
-}
-setTimeout(() => { scramble(scEl, PHRASES[0]); setTimeout(cyclePhrases, 4200); }, 700);
 
 
 /* ============================================================
@@ -3124,7 +3107,7 @@ const CHAT_MAX_LEN = 300;
 const CHAT_COOLDOWN = 1500;
 let chatLocked = false;
 let chatHistory = [];
-const GROQ_API_KEY = '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';
+const GROQ_API_KEY = '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';
 const GROQ_MODEL   = 'llama-3.3-70b-versatile';
 const GROQ_SYSTEM  = `You are Adrian's personal AI assistant. You know everything about Adrian Catahan and answer questions naturally, conversationally, and enthusiastically. Always stay in character as his dedicated AI.
 
@@ -3245,7 +3228,10 @@ async function sendChatAI(msg) {
         temperature: 0.8,
       }),
     });
-    if (!res.ok) throw new Error(`API error ${res.status}`);
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '');
+      throw new Error(`API ${res.status}: ${errBody.slice(0, 200)}`);
+    }
 
     td.remove();
     const m = document.createElement('div');
@@ -3284,6 +3270,7 @@ async function sendChatAI(msg) {
 
   } catch (e) {
     td.remove();
+    console.error('Chat error:', e.message);
     addBotMsg(`⚠️ Couldn't reach the AI. Please try again.`);
   }
 
@@ -3612,6 +3599,7 @@ setTimeout(runHccLoop, 750);
    HERO NEURAL BACKGROUND
    ============================================================ */
 (function buildHeroNeural() {
+  if (window.innerWidth <= 768) return;
   const NS = 'http://www.w3.org/2000/svg';
   const W = 1440, H = 900;
 
@@ -3733,6 +3721,7 @@ setTimeout(runHccLoop, 750);
    AI BACKGROUND GENERATOR
    ============================================================ */
 (function buildAiBg() {
+  if (window.innerWidth <= 768) return;
   const NS = 'http://www.w3.org/2000/svg';
   const W = window.innerWidth, H = window.innerHeight;
 
@@ -3795,6 +3784,42 @@ applyContent();
 renderSlider();
 initReveal();
 initInlineEditing();
+
+// ── Hero accent phrase cycler (clip wipe) ──
+(function () {
+  const PHRASES = ['AI Automation','AI Agents','AI Integrations','Workflow Design','Data Pipelines','AI-Powered Tools','CRM Automation','Auto-Scaling Ops'];
+  const el = document.getElementById('scramble-el');
+  let idx = 0;
+
+  // Lock element width to longest phrase so layout never shifts
+  (function lockWidth() {
+    const probe = el.cloneNode(false);
+    probe.style.cssText += ';position:absolute;visibility:hidden;width:auto;min-width:0';
+    el.parentNode.appendChild(probe);
+    let max = 0;
+    PHRASES.forEach(p => { probe.textContent = p; max = Math.max(max, probe.offsetWidth); });
+    probe.remove();
+    el.style.minWidth = max + 'px';
+  })();
+
+  function wipeTo(target) {
+    el.style.animation = 'none';
+    el.offsetWidth;
+    el.style.animation = 'clip-wipe-out 0.28s ease-in forwards';
+    setTimeout(() => {
+      el.textContent = target;
+      el.style.animation = 'clip-wipe-in 0.42s cubic-bezier(0.16,1,0.3,1) forwards';
+    }, 280);
+  }
+
+  function cycle() {
+    idx = (idx + 1) % PHRASES.length;
+    wipeTo(PHRASES[idx]);
+    setTimeout(cycle, 3800);
+  }
+
+  setTimeout(cycle, 3800);
+})();
 </script>
 
 
@@ -3830,14 +3855,16 @@ initInlineEditing();
     el.style.minHeight = 'unset';
   })();
 
+  const isMobile = window.innerWidth <= 768;
+
   function scrambleTo(target, duration) {
-    if (rafId) cancelAnimationFrame(rafId);
+    if (rafId) { isMobile ? clearInterval(rafId) : cancelAnimationFrame(rafId); }
     const upper = target.toUpperCase();
     const len   = upper.length;
     const start = performance.now();
 
-    function frame(now) {
-      const progress   = Math.min((now - start) / duration, 1);
+    function step(now) {
+      const progress    = Math.min((now - start) / duration, 1);
       const lockedCount = Math.floor(progress * len);
       let out = '';
       for (let c = 0; c < len; c++) {
@@ -3848,9 +3875,21 @@ initInlineEditing();
         }
       }
       el.textContent = out;
-      if (progress < 1) rafId = requestAnimationFrame(frame);
+      return progress < 1;
     }
-    rafId = requestAnimationFrame(frame);
+
+    if (isMobile) {
+      // Use setInterval at 25fps on mobile — much lighter than RAF
+      rafId = setInterval(() => {
+        const running = step(performance.now());
+        if (!running) clearInterval(rafId);
+      }, 40);
+    } else {
+      function frame(now) {
+        if (step(now)) rafId = requestAnimationFrame(frame);
+      }
+      rafId = requestAnimationFrame(frame);
+    }
   }
 
   function cycle() {
@@ -3868,34 +3907,13 @@ initInlineEditing();
   const svg = document.getElementById('constellation-bg');
   const NS  = 'http://www.w3.org/2000/svg';
 
-  const RINGS = [
-    { r: 110, speed:  0.005,  phase: 0,   sw: 2.0, dash: ''     },
-    { r: 200, speed: -0.003,  phase: 1.2, sw: 1.5, dash: '10 5' },
-    { r: 300, speed:  0.002,  phase: 2.4, sw: 1.2, dash: ''     },
-    { r: 400, speed: -0.0015, phase: 0.6, sw: 0.9, dash: '14 7' },
-    { r: 500, speed:  0.001,  phase: 1.8, sw: 0.7, dash: ''     },
-    { r: 610, speed: -0.0008, phase: 3.0, sw: 0.5, dash: '6 10' },
-  ];
-
-  const ORBIT_DOTS = [
-    { ringIdx: 0, t: 0,                speed:  0.035, size: 4   },
-    { ringIdx: 1, t: Math.PI,          speed: -0.022, size: 3.5 },
-    { ringIdx: 2, t: Math.PI / 2,      speed:  0.016, size: 3   },
-    { ringIdx: 3, t: 0,                speed: -0.013, size: 2.5 },
-    { ringIdx: 3, t: Math.PI,          speed: -0.013, size: 2.5 },
-    { ringIdx: 4, t: Math.PI / 3,      speed:  0.009, size: 2   },
-    { ringIdx: 5, t: 0,                speed: -0.007, size: 2   },
-    { ringIdx: 5, t: 2 * Math.PI / 3,  speed: -0.007, size: 2   },
-  ];
-
   const PULSE_COUNT    = 3;
   const PULSE_INTERVAL = 2600;
   const PULSE_SPEED    = 4;
+  const MAX_R          = 700;
 
-  let W, H, cx, cy, g;
-  let ringEls = [], orbitEls = [], pulseEls = [], pulseStates = [];
-  let scrollY = 0, targetScrollY = 0;
-  let mx = 0, my = 0, targetMx = 0, targetMy = 0;
+  let W, H, cx, cy;
+  let pulseEls = [], pulseStates = [];
   let lastPulseTime = 0, pulseIdx = 0;
 
   function build() {
@@ -3905,11 +3923,6 @@ initInlineEditing();
     cy = H / 2;
     svg.innerHTML = '';
 
-    // Wrap everything in a group so mouse parallax is a single transform
-    g = document.createElementNS(NS, 'g');
-    svg.appendChild(g);
-
-    // Radar pulse circles (behind rings)
     pulseStates = Array.from({ length: PULSE_COUNT }, () => ({ r: 0, active: false }));
     pulseEls = pulseStates.map(() => {
       const el = document.createElementNS(NS, 'circle');
@@ -3920,117 +3933,57 @@ initInlineEditing();
       el.setAttribute('cy', cy);
       el.setAttribute('r', 0);
       el.setAttribute('opacity', 0);
-      g.appendChild(el);
+      svg.appendChild(el);
       return el;
     });
 
-    // Center dot
     const dot = document.createElementNS(NS, 'circle');
     dot.setAttribute('cx', cx); dot.setAttribute('cy', cy);
     dot.setAttribute('r', 4);
     dot.setAttribute('fill', 'var(--accent)');
     dot.setAttribute('opacity', '0.85');
-    g.appendChild(dot);
-
-    // Rings
-    ringEls = RINGS.map(ring => {
-      const el = document.createElementNS(NS, 'ellipse');
-      el.setAttribute('cx', cx); el.setAttribute('cy', cy);
-      el.setAttribute('fill', 'none');
-      el.setAttribute('stroke', 'var(--accent)');
-      el.setAttribute('stroke-width', ring.sw);
-      if (ring.dash) el.setAttribute('stroke-dasharray', ring.dash);
-      g.appendChild(el);
-      return el;
-    });
-
-    // Orbital dots (on top)
-    orbitEls = ORBIT_DOTS.map(d => {
-      const el = document.createElementNS(NS, 'circle');
-      el.setAttribute('r', d.size);
-      el.setAttribute('fill', 'var(--accent)');
-      g.appendChild(el);
-      return el;
-    });
+    svg.appendChild(dot);
   }
 
   function frame() {
     requestAnimationFrame(frame);
 
-    // Smooth interpolations
-    scrollY += (targetScrollY - scrollY) * 0.055;
-    mx     += (targetMx - mx) * 0.06;
-    my     += (targetMy - my) * 0.06;
-
-    // Mouse parallax — shift whole group
-    g.setAttribute('transform', `translate(${mx * 0.38},${my * 0.38})`);
-
-    const tilt    = Math.min(scrollY * 0.0014, Math.PI * 0.42);
-    const cosT    = Math.cos(tilt);
     const isLight = document.documentElement.dataset.theme === 'light';
-    const maxR    = RINGS[RINGS.length - 1].r + 80;
-
-    // Radar pulses
     const now = Date.now();
+
     if (now - lastPulseTime > PULSE_INTERVAL) {
       lastPulseTime = now;
       pulseStates[pulseIdx % PULSE_COUNT] = { r: 4, active: true };
       pulseIdx++;
     }
+
     pulseStates.forEach((p, i) => {
       if (!p.active) { pulseEls[i].setAttribute('opacity', 0); return; }
       p.r += PULSE_SPEED;
-      const alpha = (isLight ? 0.65 : 0.45) * (1 - p.r / maxR);
-      if (p.r >= maxR) { p.active = false; }
-      pulseEls[i].setAttribute('cx', cx);
-      pulseEls[i].setAttribute('cy', cy);
+      const alpha = (isLight ? 0.65 : 0.45) * (1 - p.r / MAX_R);
+      if (p.r >= MAX_R) p.active = false;
       pulseEls[i].setAttribute('r', p.r);
       pulseEls[i].setAttribute('opacity', Math.max(0, alpha));
-    });
-
-    // Rings + orbital dots
-    RINGS.forEach((ring, i) => {
-      ring.phase += ring.speed;
-      const ry      = Math.max(5, ring.r * cosT);
-      const opacity = Math.max(0.05, (isLight ? 0.7 : 0.38) - i * 0.05);
-      ringEls[i].setAttribute('rx', ring.r);
-      ringEls[i].setAttribute('ry', ry);
-      ringEls[i].setAttribute('cx', cx);
-      ringEls[i].setAttribute('cy', cy);
-      ringEls[i].setAttribute('transform', `rotate(${ring.phase * 180 / Math.PI},${cx},${cy})`);
-      ringEls[i].setAttribute('opacity', opacity);
-    });
-
-    ORBIT_DOTS.forEach((dot, i) => {
-      dot.t += dot.speed;
-      const ring  = RINGS[dot.ringIdx];
-      const ry    = Math.max(5, ring.r * cosT);
-      const theta = ring.phase;
-      // Ellipse point at dot.t, rotated by ring.phase
-      const ex = ring.r * Math.cos(dot.t);
-      const ey = ry      * Math.sin(dot.t);
-      orbitEls[i].setAttribute('cx', cx + ex * Math.cos(theta) - ey * Math.sin(theta));
-      orbitEls[i].setAttribute('cy', cy + ex * Math.sin(theta) + ey * Math.cos(theta));
-      orbitEls[i].setAttribute('opacity', isLight ? 0.9 : 0.75);
     });
   }
 
   build();
   frame();
-  window.addEventListener('resize',    build,  { passive: true });
-  window.addEventListener('scroll',    () => { targetScrollY = window.scrollY; }, { passive: true });
-  window.addEventListener('mousemove', e  => { targetMx = (e.clientX / W - 0.5) * 60; targetMy = (e.clientY / H - 0.5) * 60; }, { passive: true });
+  window.addEventListener('resize', build, { passive: true });
 })();
 </script>
 
 <script>
 (function () {
+  // Disable on all mobile — canvas flow field is too GPU-heavy
+  if (window.innerWidth <= 768) return;
+
   const canvas  = document.getElementById('flow-canvas');
   const ctx     = canvas.getContext('2d');
   const section = document.getElementById('scramble-section');
   const PARTICLE_COUNT = 320;
   const CELL = 12;
-  let particles = [], t = 0;
+  let particles = [], t = 0, frame = 0;
 
   function noise(x, y, z) {
     return Math.sin(x * 1.3 + z) * Math.cos(y * 0.9 + z * 0.7)
