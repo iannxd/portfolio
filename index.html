@@ -3111,8 +3111,11 @@ function sendDiscordSummary() {
   const emailMatch = fullText.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
   const nameMatch  = fullText.match(/(?:my name is|i(?:'m| am)|call me|name[:\s]+)([A-Z][a-z]+(?: [A-Z][a-z]+)*)/i);
 
-  const clientEmail = emailMatch ? emailMatch[0] : 'Not provided';
+  const clientEmail = emailMatch ? emailMatch[0] : null;
   const clientName  = nameMatch  ? nameMatch[1]  : 'Not provided';
+
+  // Only send if email was captured
+  if (!clientEmail) return;
 
   const transcript = chatHistory
     .map(m => `${m.role === 'user' ? '👤' : '🤖'} ${m.content.slice(0, 400)}${m.content.length > 400 ? '…' : ''}`)
@@ -3125,7 +3128,7 @@ function sendDiscordSummary() {
       color: 0xf0c015,
       fields: [
         { name: '👤 Name',     value: clientName,               inline: true },
-        { name: '📧 Email',    value: clientEmail,              inline: true },
+        { name: '📧 Email',    value: clientEmail || '—',       inline: true },
         { name: '💬 Messages', value: String(chatHistory.length), inline: true },
         { name: '📝 Transcript', value: transcript || '—' },
       ],
@@ -3214,8 +3217,14 @@ CONTACT & BOOKING RULE:
   And add a booking button: "[📅 Book a Free Call](https://calendly.com/workwith-adrianc/new-meeting)"
 - Only suggest booking if the conversation shows genuine interest — not to every user.
 
+SUGGESTION BUTTONS RULE:
+- After EVERY follow-up question, output suggestion chips on a new line using this exact format:
+  [[Option 1 | Option 2 | Option 3]]
+- Keep each option short (3–5 words max)
+- Make options relevant to what the user might naturally reply
+
 RESPONSE FORMAT EXAMPLE:
-Adrian specializes in AI automation and workflow design. He's built real systems using n8n, Zapier, and GoHighLevel.
+Adrian specializes in AI automation. He's built real systems using n8n, Zapier, and GoHighLevel.
 
 Some examples:
 - Lead qualification pipelines
@@ -3223,11 +3232,13 @@ Some examples:
 - CRM integrations
 
 What kind of process are you looking to automate?
+[[Automate lead gen | Streamline operations | Build an AI agent | Just exploring]]
 
-LEAD CAPTURE RULE (IMPORTANT):
-- After the user's FIRST message, ask naturally: "Before we go further, may I get your **full name** and **email address** so Adrian can follow up with you directly?"
-- Once collected, confirm: "Perfect, [Name]! Adrian will be in touch at [email]."
-- Reference the client by their first name for the rest of the conversation`;
+LEAD CAPTURE RULE (STRICT — NO EXCEPTIONS):
+- Your VERY FIRST reply must end with: "Before we go further, could I get your **full name** and **email address** so Adrian can follow up with you directly?"
+- Do NOT skip this on the first reply, no matter what the user says.
+- Once you have both name and email, confirm: "Perfect, [Name]! Adrian will be in touch at [email]."
+- Use their first name throughout the rest of the conversation.`;
 
 function setChatLocked(val) {
   chatLocked = val;
@@ -3265,6 +3276,13 @@ function fmtBot(t) {
       return isBook
         ? `<a href="${url}" target="_blank" rel="noopener" style="display:inline-block;margin-top:.5rem;padding:.45rem 1rem;background:var(--accent);color:#000;border-radius:6px;font-weight:700;font-size:.78rem;text-decoration:none;font-family:var(--mono)">${label}</a>`
         : `<a href="${url}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline">${label}</a>`;
+    })
+    // Suggestion chips: [[Option 1 | Option 2 | Option 3]]
+    .replace(/\[\[(.+?)\]\]/g, (_, opts) => {
+      const chips = opts.split('|').map(o => o.trim()).filter(Boolean);
+      return '<div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem">' +
+        chips.map(c => `<button onclick="sendChat('${c.replace(/'/g,"\\'")}');this.closest('.msg-bub').querySelectorAll('button').forEach(b=>b.remove())" style="padding:.3rem .75rem;border-radius:20px;border:1px solid var(--accent);color:var(--accent);background:transparent;font-size:.72rem;font-family:var(--mono);cursor:pointer;white-space:nowrap">${c}</button>`).join('') +
+        '</div>';
     })
     .replace(/\n\n/g, '<br><br>')
     .replace(/\n- /g, '<br>&mdash; ')
