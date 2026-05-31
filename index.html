@@ -3105,43 +3105,38 @@ function openChatModal() {
 const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1507238032959340684/jPhnWP3rCv_5DpexClt7B1Jb1Y9wuaGWsobE27V-UPLVpoZNdKWAqQFoQMxdrHjeyake';
 
 function sendDiscordSummary() {
-  if (!chatHistory.length) return;
+  if (chatHistory.length < 2) return;
 
-  // Extract name and email from conversation
-  const fullText = chatHistory.map(m => m.content).join(' ');
+  const fullText   = chatHistory.map(m => m.content).join(' ');
   const emailMatch = fullText.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
-  const nameMatch  = fullText.match(/(?:my name is|i(?:'m| am)|name[:\s]+)([A-Z][a-z]+(?: [A-Z][a-z]+)+)/i);
+  const nameMatch  = fullText.match(/(?:my name is|i(?:'m| am)|call me|name[:\s]+)([A-Z][a-z]+(?: [A-Z][a-z]+)*)/i);
 
   const clientEmail = emailMatch ? emailMatch[0] : 'Not provided';
   const clientName  = nameMatch  ? nameMatch[1]  : 'Not provided';
 
-  // Build conversation transcript
   const transcript = chatHistory
-    .map(m => `**${m.role === 'user' ? '👤 Client' : '🤖 AI'}:** ${m.content.slice(0, 300)}${m.content.length > 300 ? '…' : ''}`)
-    .join('\n\n');
+    .map(m => `${m.role === 'user' ? '👤' : '🤖'} ${m.content.slice(0, 400)}${m.content.length > 400 ? '…' : ''}`)
+    .join('\n\n').slice(0, 3500);
 
   const payload = {
     username: 'Portfolio AI',
-    avatar_url: 'https://cdn.discordapp.com/embed/avatars/0.png',
     embeds: [{
-      title: '💬 New Chat Session — jafc.tech',
+      title: '💬 New Chat Lead — jafc.tech',
       color: 0xf0c015,
       fields: [
-        { name: '👤 Client Name',  value: clientName,  inline: true },
-        { name: '📧 Email',        value: clientEmail, inline: true },
-        { name: '💬 Messages',     value: String(chatHistory.length), inline: true },
-        { name: '📝 Transcript',   value: transcript.slice(0, 3000) || 'No messages' },
+        { name: '👤 Name',     value: clientName,               inline: true },
+        { name: '📧 Email',    value: clientEmail,              inline: true },
+        { name: '💬 Messages', value: String(chatHistory.length), inline: true },
+        { name: '📝 Transcript', value: transcript || '—' },
       ],
       timestamp: new Date().toISOString(),
-      footer: { text: 'jafc.tech Portfolio AI' },
+      footer: { text: 'jafc.tech' },
     }],
   };
 
-  fetch(DISCORD_WEBHOOK, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  }).catch(() => {});
+  // Use blob to avoid CORS preflight on Discord webhooks
+  const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+  navigator.sendBeacon(DISCORD_WEBHOOK, blob);
 }
 
 function closeChatModal() {
@@ -3201,9 +3196,9 @@ Best ways to reach him:
 • Book a call: https://calendly.com/workwith-adrianc/new-meeting
 
 BEHAVIOR:
-- Be concise yet informative
-- Use markdown (**bold**, lists, \`code\`) when helpful
-- Always fun & engaging — end replies with a follow-up question
+- Keep responses SHORT — 2 to 4 sentences max. Never write walls of text.
+- Use markdown (**bold**, bullet lists) only when listing 3+ items
+- Always end with ONE short follow-up question to keep conversation going
 - Refer to Adrian in third person ("Adrian built...", "He specializes in...")
 - For hiring/collaboration: enthusiastically direct to WhatsApp or book a call
 - Never make up facts not listed above
