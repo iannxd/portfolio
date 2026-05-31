@@ -1418,7 +1418,7 @@ body.admin-mode .admin-fab { background:var(--accent);color:#0a0900;border-color
 <!-- SCRAMBLE TEXT -->
 <div id="scramble-section" style="position:relative;padding:4rem 6rem;text-align:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:0;overflow:hidden">
   <canvas id="flow-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0"></canvas>
-  <p id="scramble-text" style="position:relative;z-index:1;font-size:clamp(1.6rem,4vw,3.2rem);font-family:var(--mono);font-weight:900;color:#fff;letter-spacing:.02em;line-height:1.25;min-height:3.2em;display:flex;align-items:center;justify-content:center;max-width:100%;margin:0 auto;text-transform:uppercase;text-shadow:0 0 40px rgba(240,192,21,0.6),0 0 80px rgba(240,192,21,0.2);">&nbsp;</p>
+  <p id="scramble-text" style="position:relative;z-index:1;font-size:clamp(1.6rem,4vw,3.2rem);font-family:var(--mono);font-weight:900;color:var(--text);letter-spacing:.02em;line-height:1.25;min-height:3.2em;display:flex;align-items:center;justify-content:center;max-width:100%;margin:0 auto;text-transform:uppercase;text-shadow:0 0 40px rgba(240,192,21,0.6),0 0 80px rgba(240,192,21,0.2);">&nbsp;</p>
   <div style="position:relative;z-index:1;width:48px;height:2px;background:var(--accent);margin:1.25rem auto 0;border-radius:2px;box-shadow:0 0 12px rgba(240,192,21,0.6)"></div>
 </div>
 
@@ -3102,9 +3102,52 @@ function openChatModal() {
   }
   setTimeout(()=>chatInp.focus(), 380);
 }
+const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1507238032959340684/jPhnWP3rCv_5DpexClt7B1Jb1Y9wuaGWsobE27V-UPLVpoZNdKWAqQFoQMxdrHjeyake';
+
+function sendDiscordSummary() {
+  if (!chatHistory.length) return;
+
+  // Extract name and email from conversation
+  const fullText = chatHistory.map(m => m.content).join(' ');
+  const emailMatch = fullText.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
+  const nameMatch  = fullText.match(/(?:my name is|i(?:'m| am)|name[:\s]+)([A-Z][a-z]+(?: [A-Z][a-z]+)+)/i);
+
+  const clientEmail = emailMatch ? emailMatch[0] : 'Not provided';
+  const clientName  = nameMatch  ? nameMatch[1]  : 'Not provided';
+
+  // Build conversation transcript
+  const transcript = chatHistory
+    .map(m => `**${m.role === 'user' ? '👤 Client' : '🤖 AI'}:** ${m.content.slice(0, 300)}${m.content.length > 300 ? '…' : ''}`)
+    .join('\n\n');
+
+  const payload = {
+    username: 'Portfolio AI',
+    avatar_url: 'https://cdn.discordapp.com/embed/avatars/0.png',
+    embeds: [{
+      title: '💬 New Chat Session — jafc.tech',
+      color: 0xf0c015,
+      fields: [
+        { name: '👤 Client Name',  value: clientName,  inline: true },
+        { name: '📧 Email',        value: clientEmail, inline: true },
+        { name: '💬 Messages',     value: String(chatHistory.length), inline: true },
+        { name: '📝 Transcript',   value: transcript.slice(0, 3000) || 'No messages' },
+      ],
+      timestamp: new Date().toISOString(),
+      footer: { text: 'jafc.tech Portfolio AI' },
+    }],
+  };
+
+  fetch(DISCORD_WEBHOOK, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).catch(() => {});
+}
+
 function closeChatModal() {
   chatModalOpen = false;
   chatModalOv.classList.remove('open');
+  sendDiscordSummary();
 }
 
 const CHAT_MAX_LEN = 300;
@@ -3164,7 +3207,13 @@ BEHAVIOR:
 - Refer to Adrian in third person ("Adrian built...", "He specializes in...")
 - For hiring/collaboration: enthusiastically direct to WhatsApp or book a call
 - Never make up facts not listed above
-- If asked something unknown about Adrian, say so honestly and offer to connect them directly`;
+- If asked something unknown about Adrian, say so honestly and offer to connect them directly
+
+LEAD CAPTURE RULE (IMPORTANT):
+- Within the first 2 exchanges, naturally ask: "Before we go further, may I get your **full name** and **email address** so Adrian can follow up with you directly?"
+- Do not proceed past 2 messages without attempting to collect this
+- Once collected, confirm: "Perfect, [Name]! Adrian will be in touch at [email]."
+- Reference the client by their first name for the rest of the conversation`;
 
 function setChatLocked(val) {
   chatLocked = val;
@@ -4020,7 +4069,8 @@ initInlineEditing();
     requestAnimationFrame(draw);
     t++;
 
-    ctx.fillStyle = 'rgba(0,0,0,0.04)';
+    const isLight = document.documentElement.dataset.theme === 'light';
+    ctx.fillStyle = isLight ? 'rgba(250,249,240,0.03)' : 'rgba(0,0,0,0.02)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (const p of particles) {
@@ -4032,16 +4082,16 @@ initInlineEditing();
 
       const progress = p.age / p.life;
       const alpha = progress < 0.1
-        ? progress / 0.1 * 0.55
+        ? progress / 0.1 * 0.92
         : progress > 0.8
-          ? (1 - progress) / 0.2 * 0.55
-          : 0.55;
+          ? (1 - progress) / 0.2 * 0.92
+          : 0.92;
 
       ctx.beginPath();
       ctx.moveTo(px, py);
       ctx.lineTo(p.x, p.y);
       ctx.strokeStyle = `rgba(240,192,21,${alpha})`;
-      ctx.lineWidth = 0.9;
+      ctx.lineWidth = 1.6;
       ctx.stroke();
 
       if (p.age >= p.life || p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
