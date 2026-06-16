@@ -1404,7 +1404,7 @@ body.admin-mode .admin-fab { background:var(--accent);color:#0a0900;border-color
       </div>
       <div class="slide-bottom-row">
         <div class="slider-dots" id="slider-dots"></div>
-        <span class="slider-counter"><strong id="slide-cur">01</strong> / <span id="slide-tot">06</span></span>
+        <span class="slider-counter"><strong id="slide-cur">01</strong> / <span id="slide-tot">05</span></span>
       </div>
     </div>
     <div style="display:flex;justify-content:center;margin-top:2rem">
@@ -1951,52 +1951,44 @@ body.admin-mode .admin-fab { background:var(--accent);color:#0a0900;border-color
    ============================================================ */
 const DEFAULT_PROJECTS = [
   {
-    id:'flow-os', name:'FlowOS', category:'WORKFLOW AUTOMATION', year:'2025',
-    desc:'A custom orchestration layer built on top of n8n that processes 47K+ trigger events per day across 6 enterprise clients — with real-time monitoring, alerting, and self-healing retry logic.',
-    tags:['n8n','TypeScript','Redis'], metric:'47K events/day', url:'#', image:'https://picsum.photos/seed/flowos2026/1200/700',
-    features:['Real-time webhook orchestration across 6 clients','Self-healing retry logic with exponential backoff','Custom n8n node library (12 reusable nodes)','Live monitoring dashboard with Slack alerts','Multi-tenant credential isolation','Automated deployment via GitHub Actions'],
-    status:{ deployment:'production', uptime:'99.1%', version:'v3.2.0' },
-    nodes:['Start','Webhook Trigger','Auth Check','Route Logic','Execute Workflow','Log Result'],
+    id:'voice-ai-dashboard', name:'Voice AI Dashboard', category:'AI AGENTS', year:'2026',
+    desc:'Voice AI assistant dashboard built with Hermes, Python, and OpenAI. A central brain delegates tasks to 6 specialized AI agents equipped with domain-specific skills — capable of analyzing, automating, coding, web scanning, and generating content, with self-learning built in.',
+    tags:['Python','OpenAI','Hermes'], metric:'6 AI Agents', url:'#', image:'https://picsum.photos/seed/voiceai2026/1200/700',
+    features:['Central brain orchestrating 6 specialized AI agents','Each agent equipped with domain-specific skills and tools','Capabilities: analyze, automate, code, web scan, generate','Self-learning through continuous feedback loops','GitHub repo integration for live code context','Voice-driven interaction powered by OpenAI'],
+    status:{ deployment:'production', uptime:'99.5%', version:'v1.0.0' },
+    nodes:['Voice Input','Brain Orchestrator','Route to Agent','Execute Skill','Synthesize Output','Self-Learn'],
   },
   {
-    id:'sentinel', name:'Sentinel', category:'AI MONITORING', year:'2025',
-    desc:'AI-powered anomaly detection for API monitoring. Flags performance degradation before thresholds breach using embedded time-series analysis and LLM classification.',
-    tags:['Python','FastAPI','LLM'], metric:'< 40ms p99', url:'#', image:'https://picsum.photos/seed/sentinel26/1200/700',
-    features:['Time-series anomaly detection with sliding windows','LLM-based alert severity classification','Auto-correlation of related incidents','PagerDuty and Slack escalation routing','30-day rolling baseline learning','False positive suppression with feedback loop'],
-    status:{ deployment:'production', uptime:'99.9%', version:'v1.8.4' },
-    nodes:['Start','Ingest Metrics','Detect Anomaly','Classify Severity','Route Alert','Notify Team'],
+    id:'resume-automation', name:'Resume Auto-Generator', category:'WORKFLOW AUTOMATION', year:'2026',
+    desc:'n8n automation integrating OpenAI, Slack, and Google Drive to scrape job postings, perform NLP parsing, and auto-generate tailored resumes — reducing manual search time ~70% and cutting time-to-apply ~80%.',
+    tags:['n8n','OpenAI','Google Drive'], metric:'~80% faster apply', url:'#', image:'https://picsum.photos/seed/resumeauto2026/1200/700',
+    features:['Automated job posting scraper across multiple platforms','NLP parsing to extract role requirements and keywords','GPT-powered tailored resume generation per posting','Google Drive integration for versioned resume storage','Slack notifications for matched postings','ETL pipeline with full API integration'],
+    status:{ deployment:'production', uptime:'98.5%', version:'v1.2.0' },
+    nodes:['Start','Scrape Job Posts','NLP Parse','Match Profile','Generate Resume','Notify via Slack'],
   },
   {
-    id:'meridian', name:'Meridian Pipeline', category:'DATA PIPELINE', year:'2024',
-    desc:'ETL automation with LLM-powered data enrichment. Reduced manual review cycles by 83% across 3 data teams by classifying, tagging, and routing records automatically.',
-    tags:['LangChain','AWS','PostgreSQL'], metric:'83% reduction', url:'#', image:'https://picsum.photos/seed/meridian26/1200/700',
-    features:['Parallel ETL with configurable batch sizes','LangChain-powered field enrichment and tagging','Schema validation with auto-correction','Dead-letter queue for failed records','Real-time progress dashboard','Webhook callbacks on pipeline completion'],
-    status:{ deployment:'production', uptime:'98.7%', version:'v2.1.0' },
-    nodes:['Start','Extract Source','Validate Schema','Enrich with LLM','Transform','Load to DB'],
+    id:'inventory-automation', name:'Inventory Automation', category:'RPA AUTOMATION', year:'2025',
+    desc:'Zapier + Airtable inventory automation for stock monitoring, expiry detection, and supplier email reorders — reducing stockouts ~60%, lowering manual inventory checks ~85%, and accelerating reorder cycles ~50%.',
+    tags:['Zapier','Airtable','Email'], metric:'~60% fewer stockouts', url:'#', image:'https://picsum.photos/seed/inventoryauto2025/1200/700',
+    features:['Real-time stock level monitoring via Airtable base','Automated expiry date detection with advance alerts','Supplier email reorder triggers on threshold breach','Configurable reorder thresholds per SKU','Live inventory dashboard with key metrics','Full workflow orchestration with RPA triggers'],
+    status:{ deployment:'production', uptime:'99.2%', version:'v2.0.0' },
+    nodes:['Start','Monitor Stock','Check Expiry','Threshold Alert','Email Supplier','Update Records'],
   },
   {
-    id:'echo', name:'Echospace', category:'VOICE AUTOMATION', year:'2024',
-    desc:'Voice-to-workflow converter. Speak a business process, receive a deployable n8n workflow. Powered by Whisper transcription and GPT-4 function calling for structured output.',
-    tags:['Whisper','GPT-4','n8n'], metric:'~11s generation', url:'#', image:'https://picsum.photos/seed/echospace26/1200/700',
-    features:['Voice-to-text transcription via Whisper API','Intent extraction with GPT-4 function calling','Structured n8n workflow JSON generation','One-click deploy to n8n instance','Multi-language support (12 languages)','Audit trail and version history'],
-    status:{ deployment:'beta', uptime:'97.2%', version:'v0.9.1' },
-    nodes:['Start','Record Audio','Transcribe','Extract Intent','Generate Workflow','Deploy'],
+    id:'lead-pipeline', name:'Lead Enrichment Pipeline', category:'CRM AUTOMATION', year:'2026',
+    desc:'Lead-enrichment and scoring pipeline using n8n, HubSpot, Apollo.io, and ClickFunnels to validate contacts, enrich profiles, deduplicate records, and score leads — increasing qualified lead conversion ~30% and cutting manual research ~75%.',
+    tags:['n8n','HubSpot','Apollo.io'], metric:'+30% conversion', url:'#', image:'https://picsum.photos/seed/leadpipeline2026/1200/700',
+    features:['Contact validation and email verification at ingestion','Apollo.io profile enrichment and data append','Intelligent lead scoring based on ICP criteria','HubSpot CRM sync with automated property updates','Deduplication engine for clean, accurate data','ClickFunnels integration for top-of-funnel capture'],
+    status:{ deployment:'production', uptime:'99.0%', version:'v1.5.0' },
+    nodes:['Start','Capture Lead','Validate Contact','Enrich Profile','Score Lead','Sync to CRM'],
   },
   {
-    id:'nexar', name:'Nexar Classifier', category:'DOCUMENT AI', year:'2025',
-    desc:'Batch document classifier that processes uploaded PDFs, extracts structured fields with GPT-4 Vision, and routes to correct downstream systems. Handles 2.3K docs/hour at peak.',
-    tags:['GPT-4 Vision','Python','S3'], metric:'2.3K docs/hr', url:'#', image:'https://picsum.photos/seed/nexar26/1200/700',
-    features:['Batch PDF upload via S3-compatible storage','GPT-4 Vision field extraction with validation','Confidence scoring per extracted field','Human-review queue for low-confidence items','Downstream API routing by document type','Full extraction audit log'],
-    status:{ deployment:'production', uptime:'99.4%', version:'v1.3.2' },
-    nodes:['Start','Upload to S3','Extract Fields','Score Confidence','Route by Type','Archive'],
-  },
-  {
-    id:'pulsar', name:'Pulsar', category:'IOT PIPELINE', year:'2024',
-    desc:'Real-time event bus for IoT sensor data. Ingests 180K readings/day from edge devices, normalises formats, detects outliers via statistical models, and surfaces dashboards for operations teams.',
-    tags:['Node.js','Kafka','TimescaleDB'], metric:'180K reads/day', url:'#', image:'https://picsum.photos/seed/pulsar26/1200/700',
-    features:['Edge device ingestion at 180K reads/day','Real-time outlier detection via Z-score analysis','TimescaleDB hypertable partitioning for fast queries','Configurable alert thresholds per device type','Grafana dashboard integration','Automatic downsampling for long-term storage'],
-    status:{ deployment:'production', uptime:'99.7%', version:'v4.0.1' },
-    nodes:['Start','Ingest Readings','Normalize Format','Detect Outliers','Store to DB','Update Dashboard'],
+    id:'ghl-booking', name:'GHL Booking System', category:'MARKETING AUTOMATION', year:'2025',
+    desc:'GoHighLevel booking and landing-page system for appointment scheduling, automated reminders, and lead nurturing — decreasing no-shows ~40%, improving booking conversions ~25%, and cutting front-desk scheduling workload ~60%.',
+    tags:['GoHighLevel','CRM','Automation'], metric:'-40% no-shows', url:'#', image:'https://picsum.photos/seed/ghlbooking2025/1200/700',
+    features:['Custom landing pages optimized for booking conversions','Automated SMS and email reminder sequences','Lead nurturing workflows post-booking','Calendar integration with live availability sync','Conversion tracking and analytics dashboard','Front-desk workload reduction through full automation'],
+    status:{ deployment:'production', uptime:'99.8%', version:'v3.1.0' },
+    nodes:['Start','Landing Page','Capture Booking','Send Reminders','Nurture Lead','Track Conversion'],
   },
 ];
 
@@ -2060,12 +2052,11 @@ window.addEventListener('scroll', () => mainNav.classList.toggle('scrolled', win
 let activeSlide = 0;
 
 const ORB_COLORS = {
-  'WORKFLOW AUTOMATION': '#f0c015',
-  'AI MONITORING':       '#38bdf8',
-  'DATA PIPELINE':       '#34d399',
-  'VOICE AUTOMATION':    '#a78bfa',
-  'DOCUMENT AI':         '#fb923c',
-  'IOT PIPELINE':        '#4ade80',
+  'AI AGENTS':            '#f0c015',
+  'WORKFLOW AUTOMATION':  '#38bdf8',
+  'RPA AUTOMATION':       '#34d399',
+  'CRM AUTOMATION':       '#fb923c',
+  'MARKETING AUTOMATION': '#a78bfa',
 };
 
 function makeOrb(color, seed) {
